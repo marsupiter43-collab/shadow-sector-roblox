@@ -44,6 +44,16 @@ def test_parse_llm_response_no_thought():
     assert thought == ""
     assert visible == "Just text"
 
+def test_tts_clean_text():
+    from nova_core.audio.tts import TTSEngine
+    # Don't download model for test
+    e = TTSEngine.__new__(TTSEngine)
+    e.clean_text = TTSEngine.clean_text.__get__(e)
+
+    assert e.clean_text("<thought>Thinking</thought>Hello!") == "Hello!"
+    assert e.clean_text("No thoughts here") == "No thoughts here"
+    assert e.clean_text("<thought>Thought 1</thought>Some text<thought>Thought 2</thought>More text") == "Some textMore text"
+
 @pytest.mark.asyncio
 async def test_llm_client_mock():
     # Since we shouldn't actually call Ollama in a unit test, we mock httpx

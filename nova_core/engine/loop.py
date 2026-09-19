@@ -9,6 +9,7 @@ from nova_core.memory.short_term import ShortTermMemory
 from nova_core.llm.client import LLMClient
 from nova_core.llm.parser import parse_llm_response
 from nova_core.comms.dispatcher import EventDispatcher
+from nova_core.audio.tts import TTSEngine
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,7 @@ class AgentLoop:
         self.memory = ShortTermMemory()
         self.llm = LLMClient()
         self.dispatcher = EventDispatcher()
+        self.tts = TTSEngine()
         self.input_queue: asyncio.Queue[str] = asyncio.Queue()
 
         self.running = False
@@ -86,24 +88,110 @@ class AgentLoop:
         sys_prompt = self.identity.generate_system_prompt(self.state, self.memory)
 
         # Determine prompt sent to LLM
-        if is_proactive:
-            prompt = text
-        else:
-            prompt = text
+        prompt = text
 
-        logger.debug("Generating response...")
-        raw_response = await self.llm.generate_response(sys_prompt, prompt)
+        logger.debug("Generating response stream...")
 
-        thought, visible = parse_llm_response(raw_response)
+        full_response = ""
+        current_sentence = ""
 
-        if thought:
-            logger.info(f"[THOUGHT] {thought}")
+        # Sentence ending characters
+        sentence_endings = {'.', '!', '?'}
 
-        if visible:
-            logger.info(f"[NOVA] {visible}")
-            if not is_proactive:
-                self.memory.add_interaction("Nova", visible)
-            await self.dispatcher.send_to_display(self.state.mood, visible)
+        # We need to buffer characters to properly parse thoughts
+        chunk_buffer = ""
+
+        # For tracking state in parsing
+        in_thought = False
+        thought_buffer = ""
+
+        async for chunk in self.llm.generate_response_stream(sys_prompt, prompt):
+            chunk_buffer += chunk
+
+            while True:
+                if not in_thought:
+                    start_idx = chunk_buffer.find("<thought>")
+                    if start_idx != -1:
+                        # Found start of thought
+                        # Text before <thought> is visible
+                        visible_text = chunk_buffer[:start_idx]
+                        if visible_text:
+                            current_sentence += visible_text
+
+                        chunk_buffer = chunk_buffer[start_idx + len("<thought>"):]
+                        in_thought = True
+                    else:
+                        # Check for partial start tag
+                        partial_match = False
+                        for i in range(1, len("<thought>")):
+                            if chunk_buffer.endswith("<thought>"[:i]):
+                                partial_match = True
+                                # Text before the partial match is visible
+                                visible_text = chunk_buffer[:-i]
+                                if visible_text:
+                                    current_sentence += visible_text
+                                chunk_buffer = chunk_buffer[-i:]
+                                break
+
+                        if not partial_match:
+                            current_sentence += chunk_buffer
+                            chunk_buffer = ""
+                        break # Need more chunks
+
+                if in_thought:
+                    end_idx = chunk_buffer.find("</thought>")
+                    if end_idx != -1:
+                        # Found end of thought
+                        thought_buffer += chunk_buffer[:end_idx]
+                        logger.info(f"[THOUGHT] {thought_buffer.strip()}")
+                        thought_buffer = ""
+                        chunk_buffer = chunk_buffer[end_idx + len("</thought>"):]
+                        in_thought = False
+                    else:
+                        # Check for partial end tag
+                        partial_match = False
+                        for i in range(1, len("</thought>")):
+                            if chunk_buffer.endswith("</thought>"[:i]):
+                                partial_match = True
+                                thought_buffer += chunk_buffer[:-i]
+                                chunk_buffer = chunk_buffer[-i:]
+                                break
+
+                        if not partial_match:
+                            thought_buffer += chunk_buffer
+                            chunk_buffer = ""
+                        break # Need more chunks
+
+            # Check if we have a full sentence to speak in current_sentence
+            # Find the last sentence ending
+            last_end = -1
+            for i, char in enumerate(current_sentence):
+                if char in sentence_endings:
+                    last_end = i
+
+            if last_end != -1:
+                # We have at least one complete sentence
+                sentences_to_speak = current_sentence[:last_end + 1]
+                current_sentence = current_sentence[last_end + 1:]
+
+                clean_sentence = sentences_to_speak.strip()
+                if clean_sentence:
+                    asyncio.create_task(self.tts.speak(clean_sentence))
+                    full_response += clean_sentence + " "
+
+        # Flush any remaining text
+        if current_sentence and not in_thought:
+            clean_sentence = current_sentence.strip()
+            if clean_sentence:
+                asyncio.create_task(self.tts.speak(clean_sentence))
+                full_response += clean_sentence + " "
+
+        # Update logs, memory, display
+        # We collected full_response without thoughts
+        logger.info(f"[NOVA] {full_response.strip()}")
+        if not is_proactive and full_response.strip():
+            self.memory.add_interaction("Nova", full_response.strip())
+        await self.dispatcher.send_to_display(self.state.mood, full_response.strip())
 
         # Simple dynamic state update based on interaction
         if not is_proactive:

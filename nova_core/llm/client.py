@@ -34,5 +34,36 @@ class LLMClient:
             logger.error(f"Error calling LLM: {e}")
             return f"<thought>I failed to contact my language model: {e}</thought> An internal error occurred."
 
+    async def generate_response_stream(self, system_prompt: str, prompt: str):
+        """
+        Calls Ollama's /api/generate asynchronously and yields chunks.
+        """
+        payload = {
+            "model": self.model,
+            "system": system_prompt,
+            "prompt": prompt,
+            "stream": True
+        }
+
+        url = f"{self.base_url}/api/generate"
+
+        try:
+            async with self.client.stream("POST", url, json=payload) as response:
+                response.raise_for_status()
+                import json
+                async for line in response.aiter_lines():
+                    if not line:
+                        continue
+                    try:
+                        data = json.loads(line)
+                        chunk = data.get("response", "")
+                        if chunk:
+                            yield chunk
+                    except json.JSONDecodeError:
+                        pass
+        except Exception as e:
+            logger.error(f"Error calling LLM stream: {e}")
+            yield f"<thought>I failed to contact my language model: {e}</thought> An internal error occurred."
+
     async def close(self):
         await self.client.aclose()

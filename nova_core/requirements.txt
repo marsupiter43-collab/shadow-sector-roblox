@@ -3,3 +3,8 @@ pydantic
 pydantic-settings
 pytest
 pytest-asyncio
+torch
+torchaudio
+sounddevice
+numpy
+omegaconf
