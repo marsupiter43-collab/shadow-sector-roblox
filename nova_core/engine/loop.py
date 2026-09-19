@@ -10,6 +10,7 @@ from nova_core.llm.client import LLMClient
 from nova_core.llm.parser import parse_llm_response
 from nova_core.comms.dispatcher import EventDispatcher
 from nova_core.audio.tts import TTSEngine
+from nova_core.audio.stt import STTEngine
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +24,17 @@ class AgentLoop:
         self.tts = TTSEngine()
         self.input_queue: asyncio.Queue[str] = asyncio.Queue()
 
+        self.stt = STTEngine(callback_queue=self.input_queue)
+
         self.running = False
         self.idle_task: Optional[asyncio.Task] = None
 
     async def start(self):
         self.running = True
         self.idle_task = asyncio.create_task(self._idle_ticker())
+
+        # Start STT background listener
+        self.stt.start()
 
         logger.info("Agent loop started.")
 
@@ -56,6 +62,9 @@ class AgentLoop:
 
     async def stop(self):
         self.running = False
+
+        self.stt.stop()
+
         # Push a sentinel to unblock the input queue
         await self.input_queue.put(None)
         if self.idle_task:

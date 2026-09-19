@@ -8,3 +8,5 @@ torchaudio
 sounddevice
 numpy
 omegaconf
+faster-whisper
+webrtcvad

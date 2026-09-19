@@ -16,9 +16,9 @@ logging.basicConfig(
 logger = logging.getLogger("main")
 
 async def cli_listener(agent: AgentLoop):
-    """Listens for user input from the CLI without blocking."""
+    """Listens for user input from the CLI without blocking. Deprecated in favor of STT."""
     loop = asyncio.get_event_loop()
-    logger.info("CLI listener ready. Type your message and press Enter. Type 'quit' to exit.")
+    logger.info("CLI listener ready. Nova is primarily listening via microphone, but you can type 'quit' to exit.")
 
     while True:
         # Run standard input reading in a thread pool to avoid blocking the async event loop
@@ -33,6 +33,7 @@ async def cli_listener(agent: AgentLoop):
                 await agent.stop()
                 break
 
+            # Still accept text if user insists on typing
             await agent.input_queue.put(text)
 
 async def main():
