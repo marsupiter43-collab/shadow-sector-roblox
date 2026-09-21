@@ -28,7 +28,6 @@ def create_essay():
     # --- TITLE PAGE ---
     # Center all text on title page
     doc.add_paragraph()
-    doc.add_paragraph()
 
     ministry = doc.add_paragraph("МИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ")
     ministry.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -36,7 +35,7 @@ def create_essay():
     college = doc.add_paragraph("Учалинский горный колледж (УКГП)")
     college.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    for _ in range(5):
+    for _ in range(3):
         doc.add_paragraph()
 
     title_type = doc.add_paragraph("РЕФЕРАТ")
@@ -54,7 +53,7 @@ def create_essay():
     topic.runs[0].bold = True
     topic.runs[0].font.size = Pt(16)
 
-    for _ in range(8):
+    for _ in range(5):
         doc.add_paragraph()
 
     student = doc.add_paragraph("Выполнил:")
@@ -70,8 +69,12 @@ def create_essay():
     teacher.alignment = WD_ALIGN_PARAGRAPH.CENTER
     teacher_name = doc.add_paragraph("преподаватель Заботина С.Р.")
     teacher_name.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    teacher_grade = doc.add_paragraph("Оценка: _____________")
+    teacher_grade.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    teacher_sig = doc.add_paragraph("Подпись: _____________")
+    teacher_sig.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
-    for _ in range(5):
+    for _ in range(3):
         doc.add_paragraph()
 
     city_year = doc.add_paragraph("Учалы – 2026")
