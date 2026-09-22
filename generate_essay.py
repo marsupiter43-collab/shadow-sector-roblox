@@ -25,60 +25,48 @@ def create_essay():
     paragraph_format.line_spacing = 1.5
     paragraph_format.first_line_indent = Cm(1.25)
 
+    def add_title_p(text="", bold=False, size=14):
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.space_after = Pt(0)
+        p.paragraph_format.space_before = Pt(0)
+        p.paragraph_format.line_spacing = 1.0 # Single spacing for title page to save space
+        p.paragraph_format.first_line_indent = Cm(0)
+        if text:
+            r = p.add_run(text)
+            if bold:
+                r.bold = True
+            r.font.size = Pt(size)
+        return p
+
     # --- TITLE PAGE ---
-    # Center all text on title page
-    doc.add_paragraph()
+    add_title_p("МИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ")
+    add_title_p("Учалинский горный колледж (УКГП)")
 
-    ministry = doc.add_paragraph("МИНИСТЕРСТВО ОБРАЗОВАНИЯ И НАУКИ")
-    ministry.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    for _ in range(8):
+        add_title_p()
 
-    college = doc.add_paragraph("Учалинский горный колледж (УКГП)")
-    college.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    add_title_p("РЕФЕРАТ", bold=True, size=16)
+    add_title_p("По дисциплине: Физическая культура")
+    add_title_p()
+    add_title_p("На тему: «Спорт и нормы»", bold=True, size=16)
 
-    for _ in range(3):
-        doc.add_paragraph()
+    for _ in range(8):
+        add_title_p()
 
-    title_type = doc.add_paragraph("РЕФЕРАТ")
-    title_type.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    title_type.runs[0].bold = True
-    title_type.runs[0].font.size = Pt(16)
+    add_title_p("Выполнил:")
+    add_title_p("студент 1 курса, группы РиУП-26")
+    add_title_p("Юсупов Камиль Ильдарович")
 
-    subject = doc.add_paragraph("По дисциплине: Физическая культура")
-    subject.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    add_title_p()
 
-    doc.add_paragraph()
+    add_title_p("Руководитель:")
+    add_title_p("преподаватель Заботина С.Р.")
 
-    topic = doc.add_paragraph("На тему: «Спорт и нормы»")
-    topic.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    topic.runs[0].bold = True
-    topic.runs[0].font.size = Pt(16)
+    for _ in range(8):
+        add_title_p()
 
-    for _ in range(5):
-        doc.add_paragraph()
-
-    student = doc.add_paragraph("Выполнил:")
-    student.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    student_name = doc.add_paragraph("студент 1 курса, группы РиУП-26")
-    student_name.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    student_name2 = doc.add_paragraph("Юсупов Камиль Ильдарович")
-    student_name2.alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-    doc.add_paragraph()
-
-    teacher = doc.add_paragraph("Проверил(а):")
-    teacher.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    teacher_name = doc.add_paragraph("преподаватель Заботина С.Р.")
-    teacher_name.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    teacher_grade = doc.add_paragraph("Оценка: _____________")
-    teacher_grade.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    teacher_sig = doc.add_paragraph("Подпись: _____________")
-    teacher_sig.alignment = WD_ALIGN_PARAGRAPH.CENTER
-
-    for _ in range(3):
-        doc.add_paragraph()
-
-    city_year = doc.add_paragraph("Учалы – 2026")
-    city_year.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    add_title_p("Учалы – 2026")
 
     doc.add_page_break()
 
@@ -101,16 +89,19 @@ def create_essay():
             p.runs[0].bold = True
             p.paragraph_format.first_line_indent = 0
             p.paragraph_format.space_after = Pt(14)
+            p.paragraph_format.line_spacing = 1.5
         elif p_text[0].isdigit() and p_text[1] == '.' and p_text[2].isdigit():
             # Subheading
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p.runs[0].bold = True
             p.paragraph_format.first_line_indent = 0
             p.paragraph_format.space_after = Pt(14)
+            p.paragraph_format.line_spacing = 1.5
         else:
             p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
             p.paragraph_format.first_line_indent = Cm(1.25)
             p.paragraph_format.space_after = Pt(0)
+            p.paragraph_format.line_spacing = 1.5
 
     doc.save('Реферат_Спорт_и_нормы.docx')
 
