@@ -1,0 +1,5 @@
+# Requirements for CancerResearchTool Prototype
+# Since the app currently only uses standard library modules (tkinter, random, time, threading),
+# no external dependencies are technically required to run app.py.
+# However, to build the .exe, pyinstaller is needed.
+pyinstaller>=6.0.0
