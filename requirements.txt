@@ -1,0 +1,6 @@
+numpy
+scipy
+torch
+PyQt6
+pyqtgraph
+pytest
