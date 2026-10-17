@@ -143,6 +143,7 @@ class MainWindow(QMainWindow):
             self.delays = None
 
         self.time_step = 0
+        self.max_e = 0.0
         self.target_data.clear()
         self.healthy_data.clear()
         self.update_display()
