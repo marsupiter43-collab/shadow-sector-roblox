@@ -1,0 +1,49 @@
+# System Configuration
+
+hardware:
+  radars:
+    front_left:
+      port: "COM3"
+      baudrate: 256000
+      offset_x: -75 # mm from center (15cm baseline)
+      offset_y: 0
+    front_right:
+      port: "COM4"
+      baudrate: 256000
+      offset_x: 75 # mm from center
+      offset_y: 0
+    rear:
+      port: "COM5"
+      baudrate: 256000
+      offset_x: 0
+      offset_y: -100 # mm rear of center
+    low_freq:
+      port: "COM6"
+      baudrate: 115200
+
+  cameras:
+    front:
+      index: 0
+      width: 1920
+      height: 1080
+      fps: 30
+      intrinsic_k: [[1000.0, 0.0, 960.0], [0.0, 1000.0, 540.0], [0.0, 0.0, 1.0]]
+    rear:
+      index: 1
+      width: 1920
+      height: 1080
+      fps: 30
+
+algorithm:
+  kalman:
+    dt: 0.033 # 30 FPS approx
+    process_noise: 0.1
+    measurement_noise: 10.0
+    mahalanobis_gate: 9.21 # 99% chi-square
+
+  yolo:
+    model: "yolov8n.pt"
+    confidence_threshold: 0.5
+
+ui:
+  fps: 60
