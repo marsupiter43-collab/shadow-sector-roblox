@@ -1,0 +1,11 @@
+numpy
+opencv-python
+pyserial
+ultralytics
+torch
+torchvision
+PyQt6
+scipy
+pyinstaller
+PyYAML
+pyserial-asyncio
